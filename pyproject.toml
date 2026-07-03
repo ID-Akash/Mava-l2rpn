@@ -52,7 +52,6 @@ dependencies = [
   "jaxlib>=0.5.3",
   "jraph",
   "jumanji>=1.1.1",  # CORE: mava/types.py + every systems/*/types.py import jumanji.types.TimeStep
-  "neptune",
   "numpy>=1.26.4",
   "omegaconf",
   "optax",
@@ -80,6 +79,9 @@ tpu = ["jax[tpu]>=0.5.3"]
 # Optional JSON-logging backend (marl-eval). Pulls rliable+arch and needs CMake to
 # build; not required for training. Install with: uv pip install -e ./Mava[eval]
 eval = ["id-marl-eval @ git+https://github.com/instadeepai/marl-eval"]
+# Optional Neptune experiment-tracking backend. Not required for training; we track
+# via mlflow/tensorboard. Install with: uv pip install -e ./Mava[neptune]
+neptune = ["neptune"]
 
 [dependency-groups]
 dev = ["mypy", "pre-commit", "pytest"]

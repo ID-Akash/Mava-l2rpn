@@ -23,8 +23,15 @@ from typing import Callable, ClassVar, Dict, List, Union
 
 import hydra
 import jax
-import neptune
 import numpy as np
+
+try:
+    import neptune
+except ImportError:
+    # L2RPN fork: neptune is an optional (proprietary) tracking backend, not required
+    # to run Mava. Moved to the optional `neptune` extra; NeptuneLogger raises only if
+    # actually used. We track via mlflow/tensorboard instead.
+    neptune = None
 from colorama import Fore, Style
 from etils.epath import Path
 from jax import tree
@@ -36,7 +43,11 @@ except ImportError:
     # it drags in rliable+arch and a CMake build, so it is not a required dep. The
     # JsonLogger backend below raises only if actually instantiated without it.
     MarlEvalJsonLogger = None
-from neptune.utils import stringify_unsupported
+try:
+    from neptune.utils import stringify_unsupported
+except ImportError:
+    def stringify_unsupported(obj):  # type: ignore[misc]
+        return obj  # neptune optional; identity fallback
 from omegaconf import DictConfig, OmegaConf
 from pandas.io.json._normalize import _simple_json_normalize as flatten_dict
 from rich.pretty import pprint
@@ -252,6 +263,11 @@ class NeptuneLogger(BaseLogger):
             run_id: ID of the run you wish to resume - None if you don't want to resume the run.
                 Note this will overwrite the run if you restart the step from 0.
         """
+        if neptune is None:
+            raise ImportError(
+                "Neptune logging requires the optional `neptune` package (install Mava's "
+                "`neptune` extra). Use the mlflow/tensorboard/console backends instead."
+            )
         # async logging leads to deadlocks in sebulba
         mode = "async" if architecture_name == "anakin" else "sync"
 
