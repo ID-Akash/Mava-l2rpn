@@ -15,7 +15,6 @@
 
 from mava.wrappers.auto_reset_wrapper import AutoResetWrapper
 from mava.wrappers.episode_metrics import RecordEpisodeMetrics
-from mava.wrappers.gigastep import GigastepWrapper
 from mava.wrappers.gym import (
     GymAgentIDWrapper,
     GymRecordEpisodeMetrics,
@@ -24,7 +23,6 @@ from mava.wrappers.gym import (
     UoeWrapper,
     async_multiagent_worker,
 )
-from mava.wrappers.jaxmarl import MabraxWrapper, MPEWrapper, SmaxWrapper
 from mava.wrappers.jumanji import (
     CleanerWrapper,
     ConnectorWrapper,
@@ -32,5 +30,23 @@ from mava.wrappers.jumanji import (
     RwareWrapper,
     VectorConnectorWrapper,
 )
-from mava.wrappers.matrax import MatraxWrapper
 from mava.wrappers.observation import AgentIDWrapper
+
+# --- L2RPN fork: the benchmark-env wrappers below depend on packages that are
+# --- trimmed for the grid2op / numpy-2 / py-3.13 stack (jaxmarl+brax+gymnax,
+# --- gigastep, matrax). Guard their imports so `import mava.wrappers` still works;
+# --- names stay defined (as None) so `from mava.wrappers import X` never breaks.
+try:
+    from mava.wrappers.gigastep import GigastepWrapper
+except ImportError:
+    GigastepWrapper = None  # requires the `gigastep` package
+
+try:
+    from mava.wrappers.jaxmarl import MabraxWrapper, MPEWrapper, SmaxWrapper
+except ImportError:
+    MabraxWrapper = MPEWrapper = SmaxWrapper = None  # require `jaxmarl`/`brax`/`gymnax`
+
+try:
+    from mava.wrappers.matrax import MatraxWrapper
+except ImportError:
+    MatraxWrapper = None  # requires the `matrax` package

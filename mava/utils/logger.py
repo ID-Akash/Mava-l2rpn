@@ -29,12 +29,25 @@ from colorama import Fore, Style
 from etils.epath import Path
 from jax import tree
 from jax.typing import ArrayLike
-from marl_eval.json_tools import JsonLogger as MarlEvalJsonLogger
+try:
+    from marl_eval.json_tools import JsonLogger as MarlEvalJsonLogger
+except ImportError:
+    # L2RPN fork: `id-marl-eval` is an optional JSON-logging backend (extra `eval`);
+    # it drags in rliable+arch and a CMake build, so it is not a required dep. The
+    # JsonLogger backend below raises only if actually instantiated without it.
+    MarlEvalJsonLogger = None
 from neptune.utils import stringify_unsupported
 from omegaconf import DictConfig, OmegaConf
 from pandas.io.json._normalize import _simple_json_normalize as flatten_dict
 from rich.pretty import pprint
-from tensorboard_logger import configure, log_value
+try:
+    from tensorboard_logger import configure, log_value
+except (ImportError, TypeError):
+    # L2RPN fork: `tensorboard_logger` (0.1.0, abandoned) ships protobuf stubs generated
+    # with protoc <3.19 and raises TypeError under protobuf>=4 — which the grid2op/
+    # competition stack requires. The TensorboardLogger backend below raises only if used;
+    # swap to tensorboardX for tensorboard support on this stack.
+    configure = log_value = None
 
 from mava.types import Metrics
 
@@ -296,6 +309,11 @@ class TensorboardLogger(BaseLogger):
             unique_token: Unique identifier string for this run
             system_name: Name of the system/algorithm being logged
         """
+        if configure is None or log_value is None:
+            raise ImportError(
+                "Tensorboard logging via `tensorboard_logger` is unavailable on this stack "
+                "(incompatible with protobuf>=4). Use another logger backend or swap to tensorboardX."
+            )
         tb_exp_path = get_logger_path(system_name, "tensorboard")
         tb_logs_path = os.path.join(base_exp_path, Path(tb_exp_path, unique_token))
 
@@ -335,6 +353,12 @@ class JsonLogger(BaseLogger):
             env_name: Name of the environment.
             seed: Random seed used in the experiment.
         """
+        if MarlEvalJsonLogger is None:
+            raise ImportError(
+                "JSON logging requires the optional 'id-marl-eval' package. "
+                "Install it with `uv pip install -e ./Mava[eval]` (needs CMake), "
+                "or disable the JSON logger in your config."
+            )
         json_exp_path = get_logger_path(system_name, "json")
         json_logs_path = Path(base_exp_path, json_exp_path, unique_token)
         # if a custom path is specified, use that instead

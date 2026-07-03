@@ -18,11 +18,25 @@ import gymnasium
 import gymnasium as gym
 import gymnasium.vector
 import gymnasium.wrappers
-import jaxmarl
 import jumanji
-import matrax
-from gigastep import ScenarioBuilder
-from jaxmarl.environments.smax import map_name_to_scenario
+
+# --- L2RPN fork: jaxmarl/matrax/gigastep are trimmed benchmark-env backends. Guard
+# --- their imports (None fallbacks) so this module imports on the grid2op stack; the
+# --- make_*_env() helpers that use them raise only if called for those envs.
+try:
+    import jaxmarl
+    from jaxmarl.environments.smax import map_name_to_scenario
+except ImportError:
+    jaxmarl = None
+    map_name_to_scenario = None
+try:
+    import matrax
+except ImportError:
+    matrax = None
+try:
+    from gigastep import ScenarioBuilder
+except ImportError:
+    ScenarioBuilder = None
 from jumanji.environments.routing.cleaner.generator import (
     RandomGenerator as CleanerRandomGenerator,
 )
@@ -61,7 +75,11 @@ from mava.wrappers import (
     async_multiagent_worker,
 )
 from mava.wrappers.graph_wrapper import GraphWrapper
-from mava.wrappers.jaxmarl import MPEGraphWrapper
+
+try:
+    from mava.wrappers.jaxmarl import MPEGraphWrapper
+except ImportError:
+    MPEGraphWrapper = None  # requires `jaxmarl`/`brax`/`gymnax`
 
 registry_type: TypeAlias = dict[str, dict[str, Type]]
 

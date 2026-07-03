@@ -12,7 +12,7 @@ dynamic = ["version"]
 license = { file = "LICENSE" }
 description = "Distributed Multi-Agent Reinforcement Learning in JAX."
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10"
 keywords = [
   "multi-agent",
   "reinforcement learning",
@@ -36,41 +36,50 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = [
-  "brax==0.10.3",
+  # --- L2RPN fork: exact pins relaxed to floors so Mava can co-resolve with the
+  # --- competition stack (Python 3.13, numpy 2.x, newer jax). See git history.
+  # --- Benchmark-environment deps are TRIMMED (commented out): brax/mujoco/jaxmarl/
+  # --- gigastep/smaclite/jumanji/rware/lbforaging/matrax are Mava's example envs and
+  # --- are anchored to the numpy-1.x / jax-0.5.3 world; they are not needed to run
+  # --- Mava's algorithms on grid2op. Only the JAX algorithm core is kept.
   "colorama",
   "distrax",
   "flashbax~=0.1.0",
-  "flax>=0.8.1,<0.10.4",
-  "gigastep @ git+https://github.com/mlech26l/gigastep",
-  "gymnasium==1.0.0",
-  "hydra-core==1.3.2",
-  "id-marl-eval @ git+https://github.com/instadeepai/marl-eval",
-  "jax==0.5.3",
-  "jaxlib==0.5.3",
-  "jaxmarl @ git+https://github.com/RuanJohn/JaxMARL@jax-05", # This only unpins the version of Jax.
+  "flax>=0.8.1",
+  "gymnasium>=1.0.0",
+  "hydra-core>=1.3.2",
+  "jax>=0.5.3",
+  "jaxlib>=0.5.3",
   "jraph",
-  "jumanji>= 1.1.1",
-  "lbforaging",
-  "matrax>= 0.0.5",
-  "mujoco==3.1.3",
-  "mujoco-mjx==3.1.3",
+  "jumanji>=1.1.1",  # CORE: mava/types.py + every systems/*/types.py import jumanji.types.TimeStep
   "neptune",
-  "numpy==1.26.4",
+  "numpy>=1.26.4",
   "omegaconf",
   "optax",
-  "protobuf~=3.20",
-  "rware",
-  "scipy==1.12.0",
+  "protobuf>=3.20",
+  "scipy>=1.12.0",
   "setuptools",
-  "smaclite @ git+https://github.com/uoe-agents/smaclite.git",
   "tensorboard_logger",
   "tensorflow_probability",
-  "type_enforced", # needed because gigastep is missing this dependency
+  "type_enforced",
+  # --- trimmed benchmark envs (restore individually if a specific env is needed):
+  # "brax>=0.10.3",
+  # "gigastep @ git+https://github.com/mlech26l/gigastep",
+  # "jaxmarl @ git+https://github.com/RuanJohn/JaxMARL@jax-05",
+  # "lbforaging",
+  # "matrax>= 0.0.5",
+  # "mujoco>=3.1.3",
+  # "mujoco-mjx>=3.1.3",
+  # "rware",
+  # "smaclite @ git+https://github.com/uoe-agents/smaclite.git",
 ]
 
 [project.optional-dependencies]
-cuda12 = ["jax[cuda12]==0.5.3"]
-tpu = ["jax[tpu]==0.5.3"]
+cuda12 = ["jax[cuda12]>=0.5.3"]
+tpu = ["jax[tpu]>=0.5.3"]
+# Optional JSON-logging backend (marl-eval). Pulls rliable+arch and needs CMake to
+# build; not required for training. Install with: uv pip install -e ./Mava[eval]
+eval = ["id-marl-eval @ git+https://github.com/instadeepai/marl-eval"]
 
 [dependency-groups]
 dev = ["mypy", "pre-commit", "pytest"]

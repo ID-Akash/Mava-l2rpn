@@ -21,10 +21,14 @@ from jumanji.specs import DiscreteArray, MultiDiscreteArray, Spec
 from omegaconf import DictConfig
 from omegaconf.omegaconf import OmegaConf
 
-from mava.networks.gnn import GNN
-
+# L2RPN fork: define these constants BEFORE importing mava.networks.gnn. That import
+# pulls in mava.networks.sable_network, which imports _CONTINUOUS/_DISCRETE back from
+# this module — a pre-existing circular import that fails when network_utils is loaded
+# first (e.g. via mava.utils.make_env). Defining them first breaks the cycle.
 _DISCRETE = "discrete"
 _CONTINUOUS = "continuous"
+
+from mava.networks.gnn import GNN
 
 
 def get_action_head(action_types: Union[Spec, Space]) -> Tuple[Dict[str, str], str]:
